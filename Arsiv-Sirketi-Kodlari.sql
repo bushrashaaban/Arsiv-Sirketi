@@ -1,7 +1,9 @@
 CREATE DATABASE ArsivSirketi; 
-
+GO
+	
 USE ArsivSirketi;
-
+GO
+	
 -- Çalışanlar için bir tablo oluşturur. 
 CREATE TABLE tCalisanlar (
     CalisanID INT IDENTITY(1,1) NOT NULL PRIMARY KEY, -- Otomatik artan benzersiz kimlik.
@@ -10,6 +12,7 @@ CREATE TABLE tCalisanlar (
     Telefon VARCHAR(15) UNIQUE NULL, -- Benzersiz telefon numarası.
     CHECK (DogumTarihi <= GETDATE()) -- Doğum tarihi bugünden ileri olamaz.
 );
+GO
 
 -- Departman bilgilerini tutar. Her departmanın bir kimlik numarası (DepartmanID) ve adı vardır. 
 -- Departmandaki çalışan sayısı varsayılan olarak 0'dır.
@@ -18,6 +21,7 @@ CREATE TABLE tDepartmanlar (
     Adi NVARCHAR(50) NOT NULL, -- Departman adı.
     CalisanSayisi INT NOT NULL DEFAULT 0 -- Varsayılan çalışan sayısı.
 );
+GO
 
 -- Şirket bilgilerini tutar. Şirket adı, adresi ve benzersiz e-posta adresi içerir. 
 -- E-posta adresi doğru formatta olmalıdır.
@@ -28,13 +32,15 @@ CREATE TABLE tSirketler (
     Email NVARCHAR(100) NOT NULL UNIQUE, -- Benzersiz e-posta adresi.
     CHECK (Email LIKE '%@%.%') -- Geçerli bir e-posta formatı kontrolü.
 );
-
+GO
+	
 -- Depo bilgilerini tutar. Her deponun bir adı ve adresi vardır.
 CREATE TABLE tDepolar (
     DepoID INT IDENTITY(1,1) NOT NULL PRIMARY KEY, -- Otomatik artan benzersiz kimlik.
     Adi NVARCHAR(50) NOT NULL, -- Depo adı.
     Adres NVARCHAR(255) NOT NULL -- Depo adresi.
 );
+GO
 
 -- Koli bilgilerini tutar. Depo numarası ve raf numarası benzersizdir.
 -- Koli oluşturma tarihi otomatik olarak bugünün tarihiyle doldurulur.
@@ -46,6 +52,7 @@ CREATE TABLE tKoliler (
     FOREIGN KEY (DepoID) REFERENCES tDepolar(DepoID), -- Depolar tablosuna yabancı anahtar bağlantısı.
     UNIQUE (DepoID, RafNumarasi) -- Aynı depoda aynı raf numarası olamaz.
 );
+GO
 
 -- Dosya bilgilerini tutar. Dosyanın oluşturma tarihi otomatik atanır.
 -- Her dosya bir koliye ve bir şirkete bağlıdır.
@@ -57,6 +64,7 @@ CREATE TABLE tDosyalar (
     FOREIGN KEY (SirketID) REFERENCES tSirketler(SirketID), -- Şirketler tablosuna yabancı anahtar bağlantısı.
     FOREIGN KEY (KoliID) REFERENCES tKoliler(KoliID) -- Koliler tablosuna yabancı anahtar bağlantısı.
 );
+GO
 
 -- Gider bilgilerini tutar. Kategori, ürün adı, miktar ve birim fiyat gibi bilgiler içerir.
 -- Toplam tutar otomatik hesaplanır.
@@ -71,6 +79,7 @@ CREATE TABLE tGiderler (
     CHECK (Miktar >= 0), -- Miktar negatif olamaz.
     CHECK (BirimFiyat >= 0 OR BirimFiyat IS NULL) -- Birim fiyat negatif olamaz.
 );
+GO
 
 -- Sipariş bilgilerini tutar. Sipariş tarihi, teslim tarihi ve sipariş edilen ürün bilgilerini içerir.
 -- Toplam tutar otomatik hesaplanır.
@@ -86,6 +95,7 @@ CREATE TABLE tSiparisler (
     FOREIGN KEY (SirketID) REFERENCES tSirketler(SirketID), -- Şirketler tablosuna yabancı anahtar bağlantısı.
     CHECK (TeslimTarihi IS NULL OR TeslimTarihi >= SiparisTarihi) -- Teslim tarihi sipariş tarihinden önce olamaz.
 );
+GO
 
 -- Gelir bilgilerini tutar. Gelir kategorisi, ürün tipi, miktar ve birim fiyat içerir.
 -- Toplam gelir otomatik hesaplanır.
@@ -100,6 +110,7 @@ CREATE TABLE tGelirler (
     CHECK (Miktar >= 0), -- Miktar negatif olamaz.
     CHECK (BirimFiyat >= 0 OR BirimFiyat IS NULL) -- Birim fiyat negatif olamaz.
 );
+GO
 
 -- Araçlar için bir tablo oluşturur. Araç plakası benzersizdir ve kapasite belirtilir.
 CREATE TABLE tAraclar (
@@ -108,6 +119,7 @@ CREATE TABLE tAraclar (
     Kapasite INT NOT NULL DEFAULT 100, -- Araç kapasitesi.
     CHECK (Kapasite > 0) -- Kapasite 0'dan küçük olamaz.
 );
+GO
 
 -- Çalışanların sistem erişim bilgilerini tutar. Erişim durumu 'AKTIF' veya 'PASIF' olabilir.
 -- Çalışan ve şirket bilgileri yabancı anahtar olarak eklenmiştir.
@@ -121,10 +133,12 @@ CREATE TABLE tSistemErisimleri (
     FOREIGN KEY (SirketID) REFERENCES tSirketler(SirketID), -- Şirketler tablosuna yabancı anahtar bağlantısı.
     CHECK (Durum IN ('AKTIF', 'PASIF')) -- Erişim durumu sadece 'AKTIF' veya 'PASIF' olabilir.
 );
+GO
 
 -- VİEW
 
 --1 Her Şirketin Sipariş Özeti: Bu view, her şirketin verdiği sipariş sayısını ve toplam sipariş tutarını özetleyecek.
+GO
 CREATE VIEW vwSirketSiparisOzet AS
 SELECT 
     s.Adi AS SirketAdi,
@@ -136,9 +150,11 @@ LEFT JOIN
     tSiparisler sp ON s.SirketID = sp.SirketID
 GROUP BY 
     s.Adi;
-
+GO
+	
 --2Depolardaki Kolilerin Özeti: Bu view, her depo için koli sayısını ve son koli oluşturma tarihini özetleyecek.
-CREATE VIEW vwDepoKoliOzet AS
+GO
+	CREATE VIEW vwDepoKoliOzet AS
 SELECT 
     d.Adi AS DepoAdi,
     COUNT(k.KoliID) AS ToplamKoliSayisi,
@@ -149,9 +165,11 @@ LEFT JOIN
     tKoliler k ON d.DepoID = k.DepoID
 GROUP BY 
     d.Adi;
-
+GO
+	
 --3 Depolardaki Dosya Özeti Bu view, her depo için toplam dosya sayısını ve o depodaki en eski dosyanın oluşturulma tarihini gösterir.
-CREATE VIEW vwDepoDosyaOzet AS
+GO
+	CREATE VIEW vwDepoDosyaOzet AS
 SELECT 
     d.Adi AS DepoAdi,
     COUNT(f.DosyaID) AS ToplamDosyaSayisi,
@@ -164,10 +182,13 @@ LEFT JOIN
     tDosyalar f ON k.KoliID = f.KoliID
 GROUP BY 
     d.Adi;
+GO
 
 	SELECT * FROM vwDepoDosyaOzet;
+GO
 --4 Sipariş Durumu Raporu: Bu view, her siparişin durumunu (bekliyor veya tamamlandı) gösterecek.
-CREATE VIEW vwSiparisDurumu AS
+GO
+	CREATE VIEW vwSiparisDurumu AS
 SELECT 
     sp.SiparisID,
     s.Adi AS SirketAdi,
@@ -181,9 +202,11 @@ FROM
     tSiparisler sp
 INNER JOIN 
     tSirketler s ON sp.SirketID = s.SirketID;
+GO
 
 --5 Aktif Çalışanların Listesi: Bu view, telefon numarası olan çalışanları listeleyecek.
-CREATE VIEW vwAktifCalisanlar AS
+GO
+	CREATE VIEW vwAktifCalisanlar AS
 SELECT 
     CalisanID, 
     AdSoyad, 
@@ -192,6 +215,7 @@ FROM
     tCalisanlar
 WHERE 
     Telefon IS NOT NULL;
+GO
 
 --İNDEXLER
 CREATE UNIQUE INDEX IX_tCalisanlar_Telefon ON tCalisanlar(Telefon);
@@ -461,6 +485,7 @@ END;
 
 EXEC spKoliEkle @DepoID = 3, @RafNumarasi = 5;
 
+/*
 -- tSistemErisimleri Tablosu'ndan Veri Silme
 DELETE FROM tSistemErisimleri;
 
@@ -493,3 +518,4 @@ DELETE FROM tDepartmanlar;
 
 -- tCalisanlar Tablosu'ndan Veri Silme
 DELETE FROM tCalisanlar;
+*/
